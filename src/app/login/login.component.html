@@ -8,9 +8,8 @@
       <mat-form-field>
 
         <input matInput type="email" name="email"
-               ngModel [ngModelOptions]="{updateOn: 'submit'}"
+               [ngModel]="val.email"
                #email="ngModel"
-               (ngModelChange) = "onEmailChange($event)"
                required email minlength="3" maxlength="20"
                placeholder="Email">
 
@@ -31,19 +30,27 @@
       <mat-form-field>
 
         <input matInput type="password" name="password"
-               ngModel #password="ngModel" required
+               required passwordStrength
+               [ngModel]="val.password" #password="ngModel"
                placeholder="Password">
+
+        <mat-error *ngIf="password.errors?.required">The password mandatory.</mat-error>
+
+        <mat-error *ngIf="password.errors?.passwordStrength">Your password must have lower case, upper case and numeric characters.
+        </mat-error>
+
 
       </mat-form-field>
 
-      <button mat-raised-button color="primary" type="submit">
+      <button mat-raised-button color="primary" type="submit"
+              [disabled]="!loginForm.valid">
         Login
       </button>
 
     </form>
 
     <div class="form-val">
-      {{email.value | json}}
+      {{loginForm.value | json}}
 
     </div>
 

@@ -15,14 +15,14 @@ import {AbstractControl, ControlValueAccessor, NG_VALIDATORS, NG_VALUE_ACCESSOR,
         multi: true,
         useExisting: FileUploadComponent
     },
-  //   {
-  //       provide: NG_VALIDATORS,
-  //       multi: true,
-  //       useExisting: FileUploadComponent
-  //   }
+    {
+        provide: NG_VALIDATORS,
+        multi: true,
+        useExisting: FileUploadComponent
+    }
   ]
 })
-export class FileUploadComponent implements ControlValueAccessor{
+export class FileUploadComponent implements ControlValueAccessor, Validator{
 
   @Input()
   requiredFileType:string;
@@ -32,12 +32,15 @@ export class FileUploadComponent implements ControlValueAccessor{
   onChange = (fileName:string) => {};
   onTouched = () => {};
   disabled: boolean = false;
+  fileUploadSuccess = false;
+  onValidatorChange = () => {};
 
 
 
 constructor(private http: HttpClient) {
 
   }
+
 
 onClick(fileUpload: HTMLInputElement) {
     this.onTouched();
@@ -79,9 +82,9 @@ onFileSelected(event) {
               this.uploadProgress = Math.round(100 * (event.loaded / event.total));
           }
           else if (event.type == HttpEventType.Response) {
-              // this.fileUploadSuccess = true;
+              this.fileUploadSuccess = true;
               this.onChange(this.fileName);
-              // this.onValidatorChange();
+              this.onValidatorChange();
           }
       }
 
@@ -110,8 +113,25 @@ setDisabledState(disabled: boolean) {
     this.disabled = disabled;
 }
 
-// registerOnValidatorChange(onValidatorChange: () => void) {
-//     this.onValidatorChange = onValidatorChange;
-// }
+validate(control: AbstractControl): ValidationErrors | null {
+
+      if (this.fileUploadSuccess) {
+          return null;
+      }
+
+      let errors: any = {
+          requiredFileType: this.requiredFileType
+      };
+
+      if (this.fileUploadError) {
+          errors.uploadFailed = true;
+      }
+
+      return errors;
+}
+
+registerOnValidatorChange(onValidatorChange: () => void) {
+    this.onValidatorChange = onValidatorChange;
+}
 
 }

@@ -16,6 +16,8 @@ export class FileUploadComponent {
   requiredFileType:string;
   fileName = '';
   fileUploadError = false;
+  uploadProgress:number;
+
 
 
   constructor(private http: HttpClient) {
@@ -45,9 +47,24 @@ onFileSelected(event) {
             catchError(error => {
                 this.fileUploadError = true;
                 return of(error);
-            })
+            }),
+            finalize(() => {
+              this.uploadProgress = null;
+          })
+
         )
-        .subscribe();
+        .subscribe(event => {
+          if (event.type == HttpEventType.UploadProgress) {
+              this.uploadProgress = Math.round(100 * (event.loaded / event.total));
+          }
+          // else if (event.type == HttpEventType.Response) {
+          //     this.fileUploadSuccess = true;
+          //     this.onChange(this.fileName);
+          //     this.onValidatorChange();
+          // }
+      }
+
+        );
 
 
 

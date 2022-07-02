@@ -1,28 +1,49 @@
 import {Component, Input} from '@angular/core';
 import {HttpClient, HttpEventType} from '@angular/common/http';
 import {catchError, finalize} from 'rxjs/operators';
-import {AbstractControl, ControlValueAccessor, NG_VALIDATORS, NG_VALUE_ACCESSOR, Validator} from '@angular/forms';
-import {noop, of} from 'rxjs';
+import {of} from 'rxjs';
+import {AbstractControl, ControlValueAccessor, NG_VALIDATORS, NG_VALUE_ACCESSOR, ValidationErrors, Validator} from '@angular/forms';
 
 
 @Component({
   selector: 'file-upload',
   templateUrl: "file-upload.component.html",
-  styleUrls: ["file-upload.component.scss"]
+  styleUrls: ["file-upload.component.scss"],
+  providers: [
+    {
+        provide: NG_VALUE_ACCESSOR,
+        multi: true,
+        useExisting: FileUploadComponent
+    },
+  //   {
+  //       provide: NG_VALIDATORS,
+  //       multi: true,
+  //       useExisting: FileUploadComponent
+  //   }
+  ]
 })
-export class FileUploadComponent {
+export class FileUploadComponent implements ControlValueAccessor{
 
   @Input()
   requiredFileType:string;
   fileName = '';
   fileUploadError = false;
   uploadProgress:number;
+  onChange = (fileName:string) => {};
+  onTouched = () => {};
+  disabled: boolean = false;
 
 
 
-  constructor(private http: HttpClient) {
+constructor(private http: HttpClient) {
 
   }
+
+onClick(fileUpload: HTMLInputElement) {
+    this.onTouched();
+    fileUpload.click();
+}
+
 
 
 onFileSelected(event) {
@@ -57,11 +78,11 @@ onFileSelected(event) {
           if (event.type == HttpEventType.UploadProgress) {
               this.uploadProgress = Math.round(100 * (event.loaded / event.total));
           }
-          // else if (event.type == HttpEventType.Response) {
-          //     this.fileUploadSuccess = true;
-          //     this.onChange(this.fileName);
-          //     this.onValidatorChange();
-          // }
+          else if (event.type == HttpEventType.Response) {
+              // this.fileUploadSuccess = true;
+              this.onChange(this.fileName);
+              // this.onValidatorChange();
+          }
       }
 
         );
@@ -71,5 +92,26 @@ onFileSelected(event) {
      }
 
   }
+
+
+  writeValue(value: any) {
+    this.fileName = value;
+}
+
+registerOnChange(onChange: any) {
+    this.onChange = onChange;
+}
+
+registerOnTouched(onTouched: any) {
+    this.onTouched = onTouched;
+}
+
+setDisabledState(disabled: boolean) {
+    this.disabled = disabled;
+}
+
+// registerOnValidatorChange(onValidatorChange: () => void) {
+//     this.onValidatorChange = onValidatorChange;
+// }
 
 }
